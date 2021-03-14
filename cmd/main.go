@@ -1,10 +1,8 @@
 package main
 
 import (
-	"log"
-
-	ddnsclient "github.com/datahearth/ddns-client"
-	"github.com/datahearth/ddns-client/internal/utils"
+	ddnsclient "github.com/datahearth/ddnsclient"
+	"github.com/datahearth/ddnsclient/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,9 +31,7 @@ func init() {
 		viper.SetConfigFile(conf)
 	}
 
-	if err := utils.LoadConfig(logger); err != nil {
-		log.Fatalf("failed to load config file: %v\n", err.Error())
-	}
+	utils.LoadConfig()
 
 	utils.SetupLogger(logger)
 }
