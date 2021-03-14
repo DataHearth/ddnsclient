@@ -1,0 +1,12 @@
+logger:
+  level: info # panic, fatal, error, warn, info, debug, trace
+  disable-timestamp: false
+  output-color: false
+
+provider:
+  ovh:
+    region: ovh-eu
+
+update-time: 300 # in seconds
+
+web-ip: http://dynamicdns.park-your-domain.com/getip # default http://dynamicdns.park-your-domain.com/getip
