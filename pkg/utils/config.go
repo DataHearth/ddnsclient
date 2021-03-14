@@ -6,26 +6,23 @@ import (
 )
 
 // LoadConfig will read the yaml config from the viper config path
-func LoadConfig(log logrus.FieldLogger) error {
-	logger := log.WithFields(logrus.Fields{
+func LoadConfig() {
+	logger := logrus.WithFields(logrus.Fields{
 		"pkg":       "utils",
 		"component": "config",
 	})
 
 	if err := viper.ReadInConfig(); err != nil {
-		logger.WithError(err).Errorln(ErrReadConfigFile.Error())
-		return err
+		logger.WithError(err).Fatalln("failed to load configuration file")
 	}
-
-	return nil
 }
 
 // SetupLogger setup the root logger
 func SetupLogger(logger *logrus.Logger) {
 	var (
-		level = logrus.InfoLevel
-		timestamp = true
-		color = true
+		level        = logrus.InfoLevel
+		timestamp    = true
+		color        = true
 		loggerConfig = viper.GetStringMap("logger")
 	)
 
@@ -47,9 +44,9 @@ func SetupLogger(logger *logrus.Logger) {
 
 	logger.SetLevel(level)
 	logger.SetFormatter(&logrus.TextFormatter{
-		DisableColors: color,
-		ForceColors: true,
-		FullTimestamp: true,
+		DisableColors:    color,
+		ForceColors:      true,
+		FullTimestamp:    true,
 		DisableTimestamp: timestamp,
 	})
 }
