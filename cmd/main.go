@@ -10,9 +10,9 @@ import (
 
 var (
 	rootCmd = cobra.Command{
-		Use:   "ddns-client",
-		Short: "ddns-client is a dynamic DNS updater with built-in providers",
-		Long: `ddns-client will use a config file to update your A DNS settings periodicly.
+		Use:   "ddnsclient",
+		Short: "ddnsclient is a dynamic DNS updater with built-in providers",
+		Long: `ddnsclient will use a config file to update your A DNS settings periodicly.
 						Checkout the documentation for parameters in the yaml config file.
 					`,
 		Run: func(cmd *cobra.Command, args []string) {
