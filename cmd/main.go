@@ -16,7 +16,9 @@ var (
 						Checkout the documentation for parameters in the yaml config file.
 					`,
 		Run: func(cmd *cobra.Command, args []string) {
-			ddnsclient.Start(logger)
+			if err := ddnsclient.Start(logger); err != nil {
+				logrus.Error(err)
+			}
 		},
 	}
 	logger = logrus.StandardLogger()
@@ -26,7 +28,7 @@ func init() {
 	viper.BindEnv("CONFIG_PATH")
 	viper.SetConfigType("yaml")
 	if conf := viper.GetString("CONFIG_PATH"); conf == "" {
-		viper.SetConfigFile("ddns-client.yaml")
+		viper.SetConfigFile("ddnsclient.yaml")
 	} else {
 		viper.SetConfigFile(conf)
 	}
