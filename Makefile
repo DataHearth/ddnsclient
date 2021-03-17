@@ -12,7 +12,7 @@ endif
 	@echo "module built!"
 
 .PHONY: deploy-image-latest
-deploy-image:
+deploy-image-latest:
 ifndef DOCKER
 	@echo "docker is required!"
 endif
@@ -20,8 +20,8 @@ endif
 	@docker push ddnsclient:latest
 	@echo "Image pushed!"
 
-.PHONY: deploy-Release
-deploy-Release:
+.PHONY: deploy-image-release
+deploy-image-release:
 ifndef DOCKER
 	@echo "docker is required!"
 endif
