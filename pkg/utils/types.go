@@ -1,6 +1,8 @@
 package utils
 
-import "errors"
+import (
+	"errors"
+)
 
 // * Errors
 var (

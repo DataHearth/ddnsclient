@@ -56,8 +56,8 @@ func SetupLogger(logger *logrus.Logger) {
 
 func AggregateSubdomains(subdomains []string, domain string) []string {
 	agdSub := make([]string, len(subdomains))
-	for _, sd := range subdomains {
-		agdSub = append(agdSub, sd+"."+domain)
+	for i, sd := range subdomains {
+		agdSub[i] = sd + "." + domain
 	}
 
 	return agdSub
