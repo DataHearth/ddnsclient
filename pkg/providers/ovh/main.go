@@ -4,23 +4,20 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/datahearth/ddnsclient"
 	"github.com/datahearth/ddnsclient/pkg/providers"
 	"github.com/datahearth/ddnsclient/pkg/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type ovh struct {
-	ovhConfig utils.ProviderConfig
+	ovhConfig *ddnsclient.Ovh
 	logger    logrus.FieldLogger
 }
 
 // NewOVH returns a new instance of the OVH provider
-func NewOVH(logger logrus.FieldLogger) (providers.Provider, error) {
-	var ovhConfig utils.ProviderConfig
-	if c, ok := viper.GetStringMap("providers")["ovh"]; ok {
-		ovhConfig = c.(map[string]interface{})
-	} else {
+func NewOVH(logger logrus.FieldLogger, ovhConfig *ddnsclient.Ovh) (providers.Provider, error) {
+	if ovhConfig == nil {
 		return nil, utils.ErrNilOvhConfig
 	}
 	if logger == nil {
@@ -36,7 +33,7 @@ func NewOVH(logger logrus.FieldLogger) (providers.Provider, error) {
 }
 
 func (ovh *ovh) UpdateIP(subdomain, ip string) error {
-	newURL := strings.ReplaceAll(ovh.ovhConfig["url"].(string), "SUBDOMAIN", subdomain)
+	newURL := strings.ReplaceAll(ovh.ovhConfig.URL, "SUBDOMAIN", subdomain)
 	newURL = strings.ReplaceAll(newURL, "NEWIP", ip)
 	logger := ovh.logger.WithFields(logrus.Fields{
 		"component":      "update-ip",
@@ -48,7 +45,7 @@ func (ovh *ovh) UpdateIP(subdomain, ip string) error {
 	if err != nil {
 		return utils.ErrCreateNewRequest
 	}
-	req.SetBasicAuth(ovh.ovhConfig["username"].(string), ovh.ovhConfig["password"].(string))
+	req.SetBasicAuth(ovh.ovhConfig.Username, ovh.ovhConfig.Password)
 
 	// * perform GET request
 	logger.WithFields(logrus.Fields{
