@@ -1,14 +1,12 @@
 package watcher
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/datahearth/ddnsclient/pkg/providers"
 	"github.com/datahearth/ddnsclient/pkg/subdomain"
 	"github.com/datahearth/ddnsclient/pkg/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type Watcher interface {
@@ -16,16 +14,18 @@ type Watcher interface {
 }
 
 type watcher struct {
-	logger            logrus.FieldLogger
-	provider          providers.Provider
-	subdomains        []subdomain.Subdomain
-	domain            string
-	webIP             string
-	firstRun          bool
-	pendingSubdomains subdomain.PendingSubdomains
+	logger                logrus.FieldLogger
+	provider              providers.Provider
+	subdomains            []subdomain.Subdomain
+	pendingSubdomains     subdomain.PendingSubdomains
+	firstRun              bool
+	pendingDnsPropagation int
+	webIP                 string
+	providerName          string
 }
 
-func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, webIP string) (Watcher, error) {
+// NewWatcher creates a watcher a given provider and its subdomains
+func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, sbs []string, webIP, providerName string, pendingDnsPropagation int) (Watcher, error) {
 	if logger == nil {
 		return nil, utils.ErrNilLogger
 	}
@@ -35,20 +35,14 @@ func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, webIP st
 	if webIP == "" {
 		webIP = "http://dynamicdns.park-your-domain.com/getip"
 	}
+	if pendingDnsPropagation == 0 {
+		pendingDnsPropagation = 180
+	}
 	logger = logger.WithField("pkg", "watcher")
 
-	domain := viper.GetStringMap("watcher")["domain"].(string)
-	var sbs []string
-	if sb, ok := viper.GetStringMap("watcher")["subdomains"].([]interface{}); ok {
-		for _, v := range sb {
-			sbs = append(sbs, fmt.Sprint(v))
-		}
-	}
-
-	sbs = utils.AggregateSubdomains(sbs, domain)
 	subdomains := make([]subdomain.Subdomain, len(sbs))
-	for i, sd := range sbs {
-		sub, err := subdomain.NewSubdomain(logger, sd)
+	for i, sb := range sbs {
+		sub, err := subdomain.NewSubdomain(logger, sb)
 		if err != nil {
 			return nil, err
 		}
@@ -57,13 +51,14 @@ func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, webIP st
 	}
 
 	return &watcher{
-		logger:            logger,
-		provider:          provider,
-		domain:            domain,
-		subdomains:        subdomains,
-		webIP:             webIP,
-		firstRun:          true,
-		pendingSubdomains: make(map[time.Time]subdomain.Subdomain),
+		logger:                logger,
+		provider:              provider,
+		subdomains:            subdomains,
+		webIP:                 webIP,
+		firstRun:              true,
+		pendingSubdomains:     make(map[time.Time]subdomain.Subdomain),
+		pendingDnsPropagation: pendingDnsPropagation,
+		providerName:          providerName,
 	}, nil
 }
 
@@ -82,7 +77,7 @@ func (w *watcher) Run(t *time.Ticker, chClose chan struct{}, chErr chan error) {
 		select {
 		case <-chClose:
 			t.Stop()
-			logger.Infoln("Close watcher channel triggered. Ticker stoped")
+			logger.Infoln("Close watcher channel triggered. Ticker stopped")
 			return
 		case <-t.C:
 			if err := w.runDDNSCheck(); err != nil {
@@ -95,7 +90,7 @@ func (w *watcher) Run(t *time.Ticker, chClose chan struct{}, chErr chan error) {
 func (w *watcher) runDDNSCheck() error {
 	logger := w.logger.WithField("component", "runDDNSCheck")
 
-	logger.Infoln("Starting DDNS check...")
+	logger.Infof("Starting [%s] DDNS check...\n", w.providerName)
 
 	srvIP, err := utils.RetrieveServerIP(w.webIP)
 	if err != nil {
@@ -122,10 +117,6 @@ func (w *watcher) runDDNSCheck() error {
 				"subdomain-address": subAddr,
 			}).Infoln("IP addresses doesn't match. Updating subdomain's ip...")
 			if err := w.provider.UpdateIP(subAddr, srvIP); err != nil {
-				logger.WithError(err).WithFields(logrus.Fields{
-					"server-ip":         srvIP,
-					"subdomain-address": subAddr,
-				}).Errorln("failed to update subdomain's ip")
 				return err
 			}
 			logger.WithFields(logrus.Fields{
@@ -137,16 +128,17 @@ func (w *watcher) runDDNSCheck() error {
 
 			continue
 		}
+
 		logger.Debugf("%s is up to date. \n", subAddr)
 	}
 
-	logger.Infoln("DDNS check finished")
+	logger.Infof("[%s] DDNS check finished\n", w.providerName)
 	return nil
 }
 
 func (w *watcher) checkPendingSubdomains(chClose chan struct{}) {
 	logger := w.logger.WithField("component", "checkPendingSubdomains")
-	t := time.NewTicker(time.Second * 10)
+	t := time.NewTicker(time.Second * time.Duration(w.pendingDnsPropagation))
 
 	logger.Debugln("Start checking for pending subdomains...")
 	for {
