@@ -13,7 +13,7 @@ import (
 )
 
 // Start create a new instance of ddns-client
-func Start(logger logrus.FieldLogger) error {
+func Start(logger logrus.FieldLogger, config ClientConfig) error {
 	log := logger.WithFields(logrus.Fields{
 		"pkg":       "ddnsclient",
 		"component": "root",
@@ -40,13 +40,13 @@ func Start(logger logrus.FieldLogger) error {
 	defer close(sigc)
 
 	log.Infoln("Start watching periodically for changes!")
-	t := time.NewTicker(viper.GetDuration("update-time")*time.Second)
+	t := time.NewTicker(viper.GetDuration("update-time") * time.Second)
 	go w.Run(t, chClose, chErr)
 
 	for {
 		select {
 		case err := <-chErr:
-			log.WithError(err).Errorln("An error occured while running the watcher. Retrying in the next tick")
+			log.Errorln(err.Error())
 			continue
 		case <-sigc:
 			log.Infoln("Interrupt signal received. Stopping watcher...")
