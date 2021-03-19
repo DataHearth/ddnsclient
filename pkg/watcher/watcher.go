@@ -98,8 +98,6 @@ func (w *watcher) runDDNSCheck() error {
 	}
 	logger.Debugln("Checking server IP...")
 
-	srvIP = "109.14.53.74" // tmp
-
 	for _, sb := range w.subdomains {
 		if sb.SubIsPending(w.pendingSubdomains) {
 			continue
