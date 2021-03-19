@@ -90,11 +90,8 @@ func (g *google) UpdateIP(subdomain, ip string) error {
 
 	// * check for error response
 	// doc: https://support.google.com/domains/answer/6147083?hl=en#zippy=%2Cusing-the-api-to-update-your-dynamic-dns-record
-	// todo: check why the hell I need to use () for conditions here !!!!
+	// todo: check why the hell do I need to use () for conditions here !!!!
 	if (strings.Contains(string(b), "good "+ip) != true) || (strings.Contains(string(b), "nochg "+ip) != false) {
-		logger.Info(string(b))
-		logger.Info(strings.Contains("good 109.14.53.74", string(b)))
-		logger.Info(strings.Contains("nochg 109.14.53.74", string(b)))
 		return errors.New("failed to update subdomain ip. Google error: " + string(b))
 	}
 
