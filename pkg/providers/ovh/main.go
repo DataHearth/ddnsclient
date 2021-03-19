@@ -1,46 +1,57 @@
 package ovh
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/datahearth/ddnsclient/pkg/providers"
 	"github.com/datahearth/ddnsclient/pkg/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
+// ErrNilOvhConfig is thrown when OVH configuration is empty
+var ErrNilOvhConfig = errors.New("OVH config is mandatory")
+
+type OvhConfig struct {
+	URL      string `mapstructure:"url,omitempty"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+}
+
 type ovh struct {
-	ovhConfig utils.ProviderConfig
-	logger    logrus.FieldLogger
+	config *OvhConfig
+	logger logrus.FieldLogger
 }
 
 // NewOVH returns a new instance of the OVH provider
-func NewOVH(logger logrus.FieldLogger) (providers.Provider, error) {
-	var ovhConfig utils.ProviderConfig
-	if c, ok := viper.GetStringMap("providers")["ovh"]; ok {
-		ovhConfig = c.(map[string]interface{})
-	} else {
-		return nil, utils.ErrNilOvhConfig
+func NewOVH(logger logrus.FieldLogger, ovhConfig *OvhConfig) (providers.Provider, error) {
+	if ovhConfig == nil {
+		return nil, ErrNilOvhConfig
 	}
 	if logger == nil {
 		return nil, utils.ErrNilLogger
+	}
+	if ovhConfig.URL == "" {
+		ovhConfig.URL = "http://www.ovh.com/nic/update?system=dyndns&hostname=SUBDOMAIN&myip=NEWIP"
 	}
 
 	logger = logger.WithField("pkg", "provider-ovh")
 
 	return &ovh{
-		ovhConfig: ovhConfig,
-		logger:    logger,
+		config: ovhConfig,
+		logger: logger,
 	}, nil
 }
 
 func (ovh *ovh) UpdateIP(subdomain, ip string) error {
-	newURL := strings.ReplaceAll(ovh.ovhConfig["url"].(string), "SUBDOMAIN", subdomain)
+	newURL := strings.ReplaceAll(ovh.config.URL, "SUBDOMAIN", subdomain)
 	newURL = strings.ReplaceAll(newURL, "NEWIP", ip)
 	logger := ovh.logger.WithFields(logrus.Fields{
 		"component":      "update-ip",
 		"ovh-update-url": newURL,
+		"subdomain":      subdomain,
+		"new-ip":         ip,
 	})
 
 	// * create GET request
@@ -48,13 +59,10 @@ func (ovh *ovh) UpdateIP(subdomain, ip string) error {
 	if err != nil {
 		return utils.ErrCreateNewRequest
 	}
-	req.SetBasicAuth(ovh.ovhConfig["username"].(string), ovh.ovhConfig["password"].(string))
+	req.SetBasicAuth(ovh.config.Username, ovh.config.Password)
 
 	// * perform GET request
-	logger.WithFields(logrus.Fields{
-		"subdomain": subdomain,
-		"new-ip":    ip,
-	}).Debugln("calling OVH DynHost to update subdomain IP")
+	logger.Debugln("calling OVH DynHost to update subdomain IP")
 	c := new(http.Client)
 	resp, err := c.Do(req)
 	if err != nil {

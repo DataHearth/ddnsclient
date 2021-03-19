@@ -1,6 +1,7 @@
 package subdomain
 
 import (
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -8,6 +9,9 @@ import (
 	"github.com/datahearth/ddnsclient/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
+
+// ErrIpLength is thrown when subdomain no or multiples remote IP address
+var ErrIpLenght = errors.New("zero or more than 1 ips have been found")
 
 type (
 	PendingSubdomains map[time.Time]Subdomain
@@ -48,7 +52,7 @@ func (sd *subdomain) retrieveSubdomainIP() error {
 	}
 
 	if len(ips) != 1 {
-		return utils.ErrIpLenght
+		return ErrIpLenght
 	}
 
 	ip := ips[0].String()
