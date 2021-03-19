@@ -1,3 +1,6 @@
+ddnsclient.yaml
 ddnsclient.yaml.sample
-README.md
 bin
+Makefile
+README.md
+.gitignore
