@@ -16,8 +16,10 @@ deploy-image-latest:
 ifndef DOCKER
 	@echo "docker is required!"
 endif
+	@echo "building image..."
+	@docker build --tag=datahearth/ddnsclient:latest .
 	@echo "Pushing image ddnsclient:latest to docker hub..."
-	@docker push ddnsclient:latest
+	@docker push datahearth/ddnsclient:latest
 	@echo "Image pushed!"
 
 .PHONY: deploy-image-release
