@@ -13,7 +13,6 @@ import (
 	"github.com/datahearth/ddnsclient/pkg/providers/google"
 	"github.com/datahearth/ddnsclient/pkg/providers/ovh"
 	"github.com/datahearth/ddnsclient/pkg/watcher"
-	"github.com/prometheus/common/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -68,7 +67,7 @@ func Start(logger logrus.FieldLogger, config ClientConfig) error {
 	defer close(chClose)
 	defer close(chErr)
 
-	log.Infoln("Start watching periodically for changes!")
+	logger.Infoln("Start watching periodically for changes!")
 	// * run every created watchers in goroutines
 	for _, w := range ws {
 		tickTime := config.UpdateTime
@@ -102,7 +101,7 @@ func CreateWatcher(provider, webIP string, logger logrus.FieldLogger, wc Watcher
 	// * check for implemented providers
 	switch provider {
 	case "ovh":
-		log.Debugln("create OVH provider")
+		logger.Debugln("create OVH provider")
 		p, err = ovh.NewOVH(logger, &ps.Ovh)
 		if err != nil {
 			return nil, err
@@ -110,7 +109,7 @@ func CreateWatcher(provider, webIP string, logger logrus.FieldLogger, wc Watcher
 		sbs = wc.Ovh
 
 	case "google":
-		log.Debugln("create GOOGLE provider")
+		logger.Debugln("create GOOGLE provider")
 		p, err = google.NewGoogle(logger, &ps.Google)
 		if err != nil {
 			return nil, err
