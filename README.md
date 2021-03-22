@@ -16,6 +16,8 @@ You can run it as:
 
 ## Supported providers
 
+If your provider is not in the list, feel free to open an issue with the tag `provider. I'll do it as soon as possible! Or, even better, you can implement it yourself with a combinaison of issue/PR.
+
 - OVH
 - Google (only one subdomain accepted for now)
 
