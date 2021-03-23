@@ -21,6 +21,14 @@ If your provider is not in the list, feel free to open an issue with the tag `pr
 - OVH
 - Google (only one subdomain accepted for now)
 
+| Provider        | Note         | Deployed     |
+| :-------------: | :----------: | -----------: |
+|  OVH            | More Stuff   | YES          |
+| Google          | Single subdomain supported | YES |
+| DuckDNS   |  | PLANNED |
+| No-IP   |  | PLANNED |
+| Cloudflare   |  | PLANNED |
+
 Note: For now, ddnsclient supports only one credential for each provider.
 
 ## Use the library
