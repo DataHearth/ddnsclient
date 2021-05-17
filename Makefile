@@ -1,33 +1,17 @@
-GO := $(shell command -v go 2> /dev/null)
-DOCKER := $(shell command -v docker 2> /dev/null)
-RELEASE_VERSION ?= $(shell bash -c 'read -s -p "Release version: " pwd')
+BINARY_FOLDER = bin/ddnsclient
 
-.PHONY: build
 build:
-ifndef GO
-	@echo "go is required!"
-endif
-	@echo "building ddnsclient..."
-	@go build -o bin/ddnsclient cmd/main.go
-	@echo "module built!"
-
-.PHONY: deploy-image-latest
-deploy-image-latest:
-ifndef DOCKER
-	@echo "docker is required!"
-endif
-	@echo "building image..."
-	@docker build --tag=datahearth/ddnsclient:latest .
-	@echo "Pushing image ddnsclient:latest to docker hub..."
-	@docker push datahearth/ddnsclient:latest
-	@echo "Image pushed!"
-
-.PHONY: deploy-image-release
-deploy-image-release:
-ifndef DOCKER
-	@echo "docker is required!"
-endif
-	@echo "Pushing image with tag to docker hub..."
-	@docker push ddnsclient:$(RELEASE_VERSION)
-	@echo "Image pushed!"
+	@command -v go >/dev/null || (echo 'go CLI is required to build ddnsclient'; exit 1)
+	@echo "Create ddnsclient binary"
+	go build -o $(BINARY_FOLDER) cmd/main.go
+	@echo "Binary created in $(BINARY_FOLDER)"
     
+create-docker-image:
+	@command -v docker >/dev/null || (echo 'docker is required to create docker image'; exit 1)
+	@read -p "Docker release: " release; \
+    docker build --tag datahearth/ddnsclient:$$release .
+
+push-docker-image:
+	@command -v docker >/dev/null || (echo 'docker is required to create docker image'; exit 1)
+	@read -p "Docker image tag: " tag; \
+    docker push datahearth/ddnsclient:$$tag .
