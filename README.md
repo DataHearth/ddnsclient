@@ -39,3 +39,7 @@ If something is missing or is not working properly, please create an issue so I 
 ## Contributing
 
 You can contribute to the project by submitting an issue and resolve issues by creating PRs. I'll look at them and validate your changes if they're correct. 
+
+## Useful links
+- Google DDNS doc: https://support.google.com/domains/answer/6147083?hl=en#zippy=%2Cusing-the-api-to-update-your-dynamic-dns-record
+- OVH DDNS doc: https://docs.ovh.com/us/en/domains/hosting_dynhost/
