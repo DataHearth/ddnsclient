@@ -1,6 +1,6 @@
 # DDNS Client
 
-## How to install DDNS-CLIENT
+## How to install DDNS-CLIENT as dependency
 
 Simply run the command `go get github.com/datahearth/ddnsclient`
 
@@ -8,33 +8,33 @@ Simply run the command `go get github.com/datahearth/ddnsclient`
 
 You have 2 options to run the DDNS client.  
 You can run it as: 
-- docker container:
-`docker run -v /path/to/config/ddnsclient.yaml:/ddnsclient.yaml --name ddnsclient datahearth/ddnsclient:latest`  
+- docker container:  
+```
+docker run -v /path/to/config/ddnsclient.yaml:/ddnsclient.yaml --name ddnsclient datahearth/ddnsclient:latest
+```
+or with a custom config path:  
+```
+docker run -e CONFIG_PATH=/path/inside/container/custom.yaml -v /path/to/config/ddnsclient.yaml:/path/inside/container/custom.yaml --name ddnsclient datahearth/ddnsclient:latest
+```
 
 - binary executable:
-`./ddnsclient` (make sure the config is in the same directory with the name `ddnsclient.yaml`)
+```
+git clone https://github.com/datahearth/ddnsclient.git
+cd ddnsclient
+go build -o ddnsclient cmd/main.go
+./ddnsclient
+```
+make sure the config is in the same directory with the name `ddnsclient.yaml` or set the `CONFIG_PATH` variable
 
 ## Supported providers
 
-If your provider is not in the list, feel free to open an issue with the tag `provider. I'll do it as soon as possible! Or, even better, you can implement it yourself with a combinaison of issue/PR.
+Any provider using the standard for DDNS should be supported by default thanks to the generic configuration.  
+You just need to get your credentials (obviously) and the update URL.  
+If you face any kind of issue, feel free to open an issue and ping me in it. If necessarry, a branch will be open to fix the problem.  
 
+Tested providers:
 - OVH
-- Google (only one subdomain accepted for now)
-
-| Provider        | Note         | Deployed     |
-| :-------------: | :----------: | -----------: |
-|  OVH            | More Stuff   | YES          |
-| Google          | Single subdomain supported | YES |
-| DuckDNS   |  | PLANNED |
-| No-IP   |  | PLANNED |
-| Cloudflare   |  | PLANNED |
-
-Note: For now, ddnsclient supports only one credential for each provider.
-
-## Use the library
-
-You can also plug the library to your own system. Just get the module and you'll find everything needed to start it.
-If something is missing or is not working properly, please create an issue so I can fix it.
+- Google
 
 ## Contributing
 
