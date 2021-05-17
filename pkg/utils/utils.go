@@ -2,7 +2,9 @@ package utils
 
 import (
 	"io/ioutil"
+	"net"
 	"net/http"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -54,18 +56,8 @@ func SetupLogger(logger *logrus.Logger) {
 	})
 }
 
-func AggregateSubdomains(subdomains []string, domain string) []string {
-	agdSub := make([]string, len(subdomains))
-	for i, sd := range subdomains {
-		agdSub[i] = sd + "." + domain
-	}
-
-	return agdSub
-}
-
-// RetrieveServerIP will use the defined web-ip service to get the server public address and save it to the struct
+// RetrieveServerIP will use the defined web-ip service to get the server public address
 func RetrieveServerIP(webIP string) (string, error) {
-	// * retrieve client's server IP
 	resp, err := http.Get(webIP)
 	if err != nil {
 		return "", ErrGetServerIP
@@ -74,11 +66,32 @@ func RetrieveServerIP(webIP string) (string, error) {
 		return "", ErrWrongStatusCode
 	}
 
-	// * get ip from body
 	d, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", ErrParseHTTPBody
 	}
 
 	return string(d), nil
+}
+
+// RetrieveSubdomainIP will retrieve the subdomain IP
+func RetrieveSubdomainIP(addr string) (string, error) {
+	ips, err := net.LookupIP(addr)
+	if err != nil {
+		return "", err
+	}
+
+	if len(ips) != 1 {
+		return "", ErrIpLenght
+	}
+
+	ip := ips[0].String()
+	if strings.Contains(ip, ":") {
+		ip, _, err = net.SplitHostPort(ip)
+		if err != nil {
+			return "", ErrSplitAddr
+		}
+	}
+
+	return ip, nil
 }

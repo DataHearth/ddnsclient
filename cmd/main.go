@@ -22,12 +22,13 @@ var (
 		},
 	}
 	logger = logrus.StandardLogger()
-	config ddnsclient.ClientConfig
+	config utils.ClientConfig
 )
 
 func init() {
 	viper.BindEnv("CONFIG_PATH")
 	viper.SetConfigType("yaml")
+
 	if conf := viper.GetString("CONFIG_PATH"); conf == "" {
 		viper.SetConfigFile("ddnsclient.yaml")
 	} else {
