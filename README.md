@@ -32,14 +32,25 @@ Any provider using the standard for DDNS should be supported by default thanks t
 You just need to get your credentials (obviously) and the update URL.  
 If you face any kind of issue, feel free to open an issue and ping me in it. If necessarry, a branch will be open to fix the problem.  
 
-Tested providers:
-- OVH
-- Google
+| Provider   	| Configuration key 	| Implemented 	| Tested 	|
+|------------	|-------------------	|-------------	|--------	|
+| OVH        	| ovh               	| YES         	| YES    	|
+| GOOGLE     	| google            	| YES         	| YES    	|
+| DuckDNS    	| duckdns           	| YES         	| YES     	|
+| No-IP      	| noip              	| NO          	| NO     	|
+| DynDNS     	| dyndns            	| NO          	| NO     	|
+| CloudFlare 	| cloudflare        	| NO          	| NO     	|
 
 ## Contributing
 
-You can contribute to the project by submitting an issue and resolve issues by creating PRs. I'll look at them and validate your changes if they're correct. 
+You can contribute to the project by submitting an issue and resolve issues by creating PRs. I'll look at them and validate your changes if they're correct as soon as possible. 
+
+## TO-DO
+
+- Add HRM to configuration file
+- Add more DDNS provider (see the table above)
 
 ## Useful links
 - Google DDNS doc: https://support.google.com/domains/answer/6147083?hl=en#zippy=%2Cusing-the-api-to-update-your-dynamic-dns-record
 - OVH DDNS doc: https://docs.ovh.com/us/en/domains/hosting_dynhost/
+- DuckDNS DDNS doc: https://www.duckdns.org/spec.jsp
