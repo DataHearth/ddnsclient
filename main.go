@@ -12,13 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	ErrSbsLen             = errors.New("subdomains len is 0")
-	ErrInvalidProvider    = errors.New("invalid provider name")
-	ErrWatchersConfigLen  = errors.New("watcher configuration needs at least one [watcherd] and [providerd] configuration")
-	ErrWatcherCreationLen = errors.New("no valid watchers were created. Checkout [watchers] configuration and its [providers] configuration")
-)
-
 // Start create a new instance of ddns-client
 func Start(logger logrus.FieldLogger, config utils.ClientConfig) error {
 	log := logger.WithFields(logrus.Fields{
@@ -38,7 +31,7 @@ func Start(logger logrus.FieldLogger, config utils.ClientConfig) error {
 	}
 
 	if len(ws) == 0 {
-		return ErrWatcherCreationLen
+		return errors.New("no valid watchers were created. Checkout [watchers] configuration and its [providers] configuration")
 	}
 
 	sigc := make(chan os.Signal, 1)

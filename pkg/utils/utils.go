@@ -1,11 +1,6 @@
 package utils
 
 import (
-	"io/ioutil"
-	"net"
-	"net/http"
-	"strings"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -54,44 +49,4 @@ func SetupLogger(logger *logrus.Logger) {
 		FullTimestamp:    true,
 		DisableTimestamp: timestamp,
 	})
-}
-
-// RetrieveServerIP will use the defined web-ip service to get the server public address
-func RetrieveServerIP(webIP string) (string, error) {
-	resp, err := http.Get(webIP)
-	if err != nil {
-		return "", ErrGetServerIP
-	}
-	if resp.StatusCode != 200 {
-		return "", ErrWrongStatusCode
-	}
-
-	d, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", ErrParseHTTPBody
-	}
-
-	return string(d), nil
-}
-
-// RetrieveSubdomainIP will retrieve the subdomain IP
-func RetrieveSubdomainIP(addr string) (string, error) {
-	ips, err := net.LookupIP(addr)
-	if err != nil {
-		return "", err
-	}
-
-	if len(ips) != 1 {
-		return "", ErrIpLenght
-	}
-
-	ip := ips[0].String()
-	if strings.Contains(ip, ":") {
-		ip, _, err = net.SplitHostPort(ip)
-		if err != nil {
-			return "", ErrSplitAddr
-		}
-	}
-
-	return ip, nil
 }
