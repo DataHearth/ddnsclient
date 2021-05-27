@@ -14,4 +14,4 @@ create-docker-image:
 push-docker-image:
 	@command -v docker >/dev/null || (echo 'docker is required to create docker image'; exit 1)
 	@read -p "Docker image tag: " tag; \
-    docker push datahearth/ddnsclient:$$tag .
+    docker push datahearth/ddnsclient:$$tag
