@@ -1,3 +1,4 @@
+[![Build Status](https://drone.antoine-langlois.net/api/badges/DataHearth/ddnsclient/status.svg)](https://drone.antoine-langlois.net/DataHearth/ddnsclient)
 # DDNS Client
 
 ## How to install DDNS-CLIENT as dependency
