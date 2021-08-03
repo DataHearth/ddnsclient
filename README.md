@@ -1,4 +1,6 @@
-[![Build Status](https://drone.antoine-langlois.net/api/badges/DataHearth/ddnsclient/status.svg)](https://drone.antoine-langlois.net/DataHearth/ddnsclient)
+![Test & Build](https://github.com/DataHearth/ddnsclient/actions/workflows/go.yml/badge.svg)
+![Docker](https://github.com/DataHearth/ddnsclient/actions/workflows/docker-publish.yml/badge.svg)
+
 # DDNS Client
 
 ## How to install DDNS-CLIENT as dependency
