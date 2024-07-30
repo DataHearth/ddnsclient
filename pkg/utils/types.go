@@ -13,7 +13,7 @@ var (
 	// ErrGetServerIP is thrown when HTTP can't contact the web-ip service
 	ErrGetServerIP = errors.New("HTTP error")
 	// ErrParseHTTPBody is thrown when the HTTP service can't parse the body response
-	ErrParseHTTPBody = errors.New("can't parse response body")
+	ErrParseHTTPBody = errors.New("can't read response body")
 	// ErrSplitAddr is thrown when the remote address can't be splitted
 	ErrSplitAddr = errors.New("can't split subdomain remote IP address")
 	// ErrCreateNewRequest is thrown when http request creation failed

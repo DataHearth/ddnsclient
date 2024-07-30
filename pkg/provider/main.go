@@ -15,6 +15,7 @@ type Provider interface {
 	UpdateSubdomains(ip string) error
 	updateSubdomain(subdomain, ip string) error
 	retrieveSubdomainIP(addr string) (string, error)
+	checkResponse(body []byte, tokenBased bool, ip string) error
 }
 
 type provider struct {
@@ -96,7 +97,7 @@ func (p *provider) updateSubdomain(subdomain, ip string) error {
 
 	req, err := http.NewRequest("GET", newURL, nil)
 	if err != nil {
-		return utils.ErrCreateNewRequest
+		return fmt.Errorf("%v: %v", utils.ErrCreateNewRequest, err)
 	}
 	if !tokenBased {
 		req.SetBasicAuth(p.config.Username, p.config.Password)
@@ -134,14 +135,14 @@ func (p *provider) retrieveSubdomainIP(addr string) (string, error) {
 	}
 
 	if len(ips) != 1 {
-		return "", utils.ErrIpLenght
+		return "", fmt.Errorf("%v: %v", utils.ErrIpLenght, ips)
 	}
 
 	ip := ips[0].String()
 	if strings.Contains(ip, ":") {
 		ip, _, err = net.SplitHostPort(ip)
 		if err != nil {
-			return "", utils.ErrSplitAddr
+			return "", fmt.Errorf("%v: %v", utils.ErrSplitAddr, ip)
 		}
 	}
 

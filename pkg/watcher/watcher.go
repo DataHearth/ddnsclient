@@ -1,8 +1,12 @@
 package watcher
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/datahearth/ddnsclient/pkg/provider"
@@ -102,18 +106,66 @@ func (w *watcher) runDDNSCheck() error {
 }
 
 func (w *watcher) retrieveServerIP() (string, error) {
-	resp, err := http.Get(w.webIP)
+	rsp, err := http.Get(w.webIP)
 	if err != nil {
-		return "", utils.ErrGetServerIP
+		return "", fmt.Errorf("%v: %v", utils.ErrGetServerIP, err)
 	}
-	if resp.StatusCode != 200 {
-		return "", utils.ErrWrongStatusCode
+	if rsp.StatusCode != 200 {
+		return "", fmt.Errorf("%v: %v", utils.ErrWrongStatusCode, rsp.Status)
 	}
 
-	d, err := ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		return "", utils.ErrParseHTTPBody
+		return "", fmt.Errorf("%v: %v", utils.ErrParseHTTPBody, err)
 	}
 
-	return string(d), nil
+	var ip string
+	if rsp.Header.Get("content-type") == "application/json" {
+		body := make(map[string]interface{})
+		if err := json.Unmarshal(b, &body); err != nil {
+			return "", fmt.Errorf("failed to unmarshal JSON body: %v", err)
+		}
+
+		if v, ok := body["ip"]; ok {
+			if v, ok := v.(string); ok {
+				ip = v
+			} else {
+				return "", fmt.Errorf("\"ip\" field found in JSON response but is not a string value")
+			}
+		} else {
+			for _, v := range body {
+				if v, ok := v.(string); ok {
+					if parsedIP := net.ParseIP(v); parsedIP != nil {
+						ip = parsedIP.String()
+					}
+				}
+			}
+
+			if ip == "" {
+				return "", fmt.Errorf("no field found with a valid IPv4 address in JSON response")
+			}
+		}
+	} else {
+		body := string(b)
+		if strings.Count(body, "\n") > 0 {
+			for _, l := range strings.Split(body, "\n") {
+				if parsedIP := net.ParseIP(l); parsedIP != nil {
+					ip = parsedIP.String()
+					break
+				}
+			}
+
+			if ip == "" {
+				return "", fmt.Errorf("no field found with a valid IPv4 address in body response")
+			}
+		} else {
+			if body == "" {
+				return "", fmt.Errorf("body is empty")
+			}
+			ip = body
+		}
+
+	}
+
+	return ip, nil
 }
