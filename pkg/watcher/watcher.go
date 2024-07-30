@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"time"
+
 	"github.com/datahearth/ddnsclient/pkg/providers"
 	"github.com/datahearth/ddnsclient/pkg/subdomain"
 	"github.com/datahearth/ddnsclient/pkg/utils"
@@ -9,7 +11,7 @@ import (
 )
 
 type Watcher interface {
-	Run(chan bool) error
+	Run(*time.Ticker, chan struct{}, chan error)
 }
 
 type watcher struct {
@@ -25,11 +27,13 @@ func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, webIP st
 		return nil, utils.ErrNilLogger
 	}
 	if provider == nil {
-		return nil, ErrNilProvider
+		return nil, utils.ErrNilProvider
 	}
 	if webIP == "" {
 		webIP = "http://dynamicdns.park-your-domain.com/getip"
 	}
+	logger = logger.WithField("pkg", "watcher")
+
 	domain := viper.GetStringMap("watcher")["domain"].(string)
 	sbs := utils.AggregateSubdomains(viper.GetStringMap("watcher")["subdomains"].([]string), domain)
 	subdomains := make([]subdomain.Subdomain, len(sbs))
@@ -51,24 +55,49 @@ func NewWatcher(logger logrus.FieldLogger, provider providers.Provider, webIP st
 	}, nil
 }
 
-func (w *watcher) Run(close chan bool) error {
+func (w *watcher) Run(t *time.Ticker, chClose chan struct{}, chErr chan error) {
+	logger := w.logger.WithField("component", "run")
+
 	for {
 		select {
-		case <-close:
-			return nil
-		default:
+		case <-chClose:
+			t.Stop()
+			logger.Infoln("Close watcher channel triggered. Ticker stoped")
+			return
+		case <-t.C:
+			logger.Infoln("Starting DDNS check")
 			srvIP, err := utils.RetrieveServerIP(w.webIP)
 			if err != nil {
-				return err
+				chErr <- err
+				continue
 			}
 
+			logger.WithField("server-ip", srvIP).Debugln("Server IP retrieved. Checking subdomains...")
 			for _, sd := range w.subdomains {
 				ok, err := sd.CheckIPAddr(srvIP)
 				if err != nil {
-					return err
+					logger.WithError(err).WithField("server-ip", srvIP).Errorln("failed to check ip addresses")
+					chErr <- err
+					continue
 				}
 				if !ok {
-					w.provider.UpdateIP(sd.GetSubdomainIP(), srvIP)
+					subIP := sd.GetSubdomainIP()
+					logger.WithFields(logrus.Fields{
+						"server-ip":    srvIP,
+						"subdomain-ip": subIP,
+					}).Infoln("IP addresses doesn't match. Updating subdomain's ip...")
+					if err := w.provider.UpdateIP(subIP, srvIP); err != nil {
+						logger.WithError(err).WithFields(logrus.Fields{
+							"server-ip":    srvIP,
+							"subdomain-ip": subIP,
+						}).Errorln("failed to update subdomain's ip")
+						chErr <- err
+						continue
+					}
+					logger.WithFields(logrus.Fields{
+						"server-ip":    srvIP,
+						"subdomain-ip": subIP,
+					}).Infoln("Subdomain updated successfully!")
 				}
 			}
 		}

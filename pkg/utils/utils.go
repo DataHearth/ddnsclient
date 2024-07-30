@@ -64,20 +64,31 @@ func AggregateSubdomains(subdomains []string, domain string) []string {
 }
 
 // RetrieveServerIP will use the defined web-ip service to get the server public address and save it to the struct
-func RetrieveServerIP(webIP) (string, error) {
+func RetrieveServerIP(webIP string) (string, error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"pkg":       "utils",
+		"component": "server-ip",
+	})
+
 	// * retrieve client's server IP
 	resp, err := http.Get(webIP)
 	if err != nil {
-		return "", err
+		logger.WithError(err).WithField("web-ip", webIP).Errorln(ErrGetServerIP.Error())
+		return "", ErrGetServerIP
 	}
 	if resp.StatusCode != 200 {
+		logger.WithError(err).WithFields(logrus.Fields{
+			"web-ip":      webIP,
+			"statuc-code": resp.StatusCode,
+		}).Errorln(ErrWrongStatusCode.Error())
 		return "", ErrWrongStatusCode
 	}
 
 	// * get ip from body
 	d, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		logger.WithError(err).WithField("web-ip", webIP).Errorln(ErrParseHTTPBody.Error())
+		return "", ErrParseHTTPBody
 	}
 
 	return string(d), nil
