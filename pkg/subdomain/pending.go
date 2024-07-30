@@ -13,6 +13,18 @@ func (sb *subdomain) SubIsPending(sbs PendingSubdomains) bool {
 	return false
 }
 
+// FindSubdomain returns a subdomain found in the pending map of subdomain.
+// If not found, it returns nil.
+func (sb *subdomain) FindSubdomain(sbs PendingSubdomains) Subdomain {
+	for _, sub := range sbs {
+		if sub == sb {
+			return sb
+		}
+	}
+
+	return nil
+}
+
 // CheckPendingSubdomains check if any pending subdomains are waiting to be restored.
 // If so, it/they will be returned as a slice.
 // If not, it returns nil.
@@ -29,18 +41,6 @@ func CheckPendingSubdomains(sbs PendingSubdomains, now time.Time) PendingSubdoma
 	}
 
 	return delSbs
-}
-
-// FindSubdomain returns a subdomain found in the pending map of subdomain.
-// If not found, it returns nil.
-func (sb *subdomain) FindSubdomain(sbs PendingSubdomains) Subdomain {
-	for _, sub := range sbs {
-		if sub == sb {
-			return sb
-		}
-	}
-
-	return nil
 }
 
 func DeletePendingSubdomains(delSbs PendingSubdomains, pending PendingSubdomains) PendingSubdomains {

@@ -16,12 +16,13 @@ var (
 						Checkout the documentation for parameters in the yaml config file.
 					`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := ddnsclient.Start(logger); err != nil {
+			if err := ddnsclient.Start(logger, config); err != nil {
 				logrus.Error(err)
 			}
 		},
 	}
 	logger = logrus.StandardLogger()
+	config ddnsclient.ClientConfig
 )
 
 func init() {
@@ -34,6 +35,9 @@ func init() {
 	}
 
 	utils.LoadConfig()
+	if err := viper.Unmarshal(&config); err != nil {
+		logger.WithError(err).Fatalln("failed to map yaml config file into ClientConfig struct")
+	}
 
 	utils.SetupLogger(logger)
 }

@@ -94,11 +94,16 @@ func (w *watcher) Run(t *time.Ticker, chClose chan struct{}, chErr chan error) {
 
 func (w *watcher) runDDNSCheck() error {
 	logger := w.logger.WithField("component", "runDDNSCheck")
+
 	logger.Infoln("Starting DDNS check...")
+
 	srvIP, err := utils.RetrieveServerIP(w.webIP)
 	if err != nil {
 		return err
 	}
+	logger.Debugln("Checking server IP...")
+
+	srvIP = "109.14.53.74" // tmp
 
 	for _, sb := range w.subdomains {
 		if sb.SubIsPending(w.pendingSubdomains) {

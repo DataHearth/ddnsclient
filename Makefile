@@ -25,7 +25,7 @@ deploy-image-release:
 ifndef DOCKER
 	@echo "docker is required!"
 endif
-	@echo "Pushing image ddnsclient:$(RELEASE_VERSION) to docker hub..."
+	@echo "Pushing image with tag to docker hub..."
 	@docker push ddnsclient:$(RELEASE_VERSION)
 	@echo "Image pushed!"
     
