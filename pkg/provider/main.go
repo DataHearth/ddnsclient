@@ -1,8 +1,9 @@
 package provider
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 
@@ -10,9 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Provider is the default interface for all providers
 type Provider interface {
 	UpdateSubdomains(ip string) error
+	updateSubdomain(subdomain, ip string) error
+	retrieveSubdomainIP(addr string) (string, error)
 }
 
 type provider struct {
@@ -22,6 +24,7 @@ type provider struct {
 	url    string
 }
 
+// NewProvider creates a new instance of the `Provider` interface
 func NewProvider(logger logrus.FieldLogger, config utils.Config, url, name string) (Provider, error) {
 	if logger == nil {
 		return nil, utils.ErrNilLogger
@@ -45,9 +48,11 @@ func NewProvider(logger logrus.FieldLogger, config utils.Config, url, name strin
 	}, nil
 }
 
+// UpdateSubdomains will watch for every defined subdomains if they need an update.
+// If so, it'll trigger an update
 func (p *provider) UpdateSubdomains(srvIP string) error {
 	for _, sb := range p.config.Subdomains {
-		ip, err := utils.RetrieveSubdomainIP(sb)
+		ip, err := p.retrieveSubdomainIP(sb)
 		if err != nil {
 			return err
 		}
@@ -63,14 +68,11 @@ func (p *provider) UpdateSubdomains(srvIP string) error {
 			"subdomain":         sb,
 		}).Infoln("IP addresses doesn't match. Updating subdomain's ip...")
 		if err := p.updateSubdomain(sb, srvIP); err != nil {
-			if err != utils.ErrReadBody && err != utils.ErrWrongStatusCode {
-				return err
-			}
 			p.logger.WithError(err).WithFields(logrus.Fields{
 				"component": "UpdateSubdomains",
 				"subdomain": sb,
 				"new-ip":    srvIP,
-			}).Warnln("failed to update subdomain ip")
+			}).Errorln("failed to update subdomain ip")
 		}
 	}
 
@@ -78,8 +80,13 @@ func (p *provider) UpdateSubdomains(srvIP string) error {
 }
 
 func (p *provider) updateSubdomain(subdomain, ip string) error {
+	tokenBased := p.config.Token != "" && (p.config.Username == "" && p.config.Password == "")
+
 	newURL := strings.ReplaceAll(p.url, "SUBDOMAIN", subdomain)
 	newURL = strings.ReplaceAll(newURL, "NEWIP", ip)
+	if tokenBased {
+		newURL = strings.ReplaceAll(newURL, "TOKEN", p.config.Token)
+	}
 	logger := p.logger.WithFields(logrus.Fields{
 		"component":   "UpdateIP",
 		"updated-url": newURL,
@@ -91,23 +98,25 @@ func (p *provider) updateSubdomain(subdomain, ip string) error {
 	if err != nil {
 		return utils.ErrCreateNewRequest
 	}
-	req.SetBasicAuth(p.config.Username, p.config.Password)
+	if !tokenBased {
+		req.SetBasicAuth(p.config.Username, p.config.Password)
+	}
 
 	logger.Debugln("calling DDNS provider for subdomain update")
 	c := new(http.Client)
 	resp, err := c.Do(req)
 	if err != nil {
-		return utils.ErrUpdateRequest
+		return err
 	}
 
 	if resp.ContentLength != 0 {
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return utils.ErrReadBody
+			return err
 		}
 
-		if !strings.Contains(string(b), "good "+ip) && !strings.Contains(string(b), "nochg "+ip) {
-			return errors.New("failed to update subdomain ip. Error: " + string(b))
+		if err := p.checkResponse(b, tokenBased, ip); err != nil {
+			return err
 		}
 	}
 
@@ -116,4 +125,45 @@ func (p *provider) updateSubdomain(subdomain, ip string) error {
 	}
 
 	return nil
+}
+
+func (p *provider) retrieveSubdomainIP(addr string) (string, error) {
+	ips, err := net.LookupIP(addr)
+	if err != nil {
+		return "", err
+	}
+
+	if len(ips) != 1 {
+		return "", utils.ErrIpLenght
+	}
+
+	ip := ips[0].String()
+	if strings.Contains(ip, ":") {
+		ip, _, err = net.SplitHostPort(ip)
+		if err != nil {
+			return "", utils.ErrSplitAddr
+		}
+	}
+
+	return ip, nil
+}
+
+func (p *provider) checkResponse(body []byte, tokenBased bool, ip string) error {
+	var invalidResponse error
+
+	if tokenBased {
+		if !strings.Contains(string(body), "OK") {
+			if strings.Contains(string(body), "KO") {
+				invalidResponse = fmt.Errorf("invalid body response.\n Body response: %v", string(body))
+			} else {
+				invalidResponse = fmt.Errorf("unknown body response. Please fill a issue if you think this is an error.\n Body response: %v", string(body))
+			}
+		}
+	} else {
+		if !strings.Contains(string(body), "good "+ip) && !strings.Contains(string(body), "nochg "+ip) {
+			invalidResponse = fmt.Errorf("invalid body response.\n Body response: %v", string(body))
+		}
+	}
+
+	return invalidResponse
 }

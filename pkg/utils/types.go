@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-// * Errors
+// ** ERRORS ** //
 var (
 	// ErrNilLogger is thrown when the parameter logger is nil
 	ErrNilLogger = errors.New("logger is mandatory")
@@ -18,14 +18,10 @@ var (
 	ErrSplitAddr = errors.New("can't split subdomain remote IP address")
 	// ErrCreateNewRequest is thrown when http request creation failed
 	ErrCreateNewRequest = errors.New("can't create http request")
-	// ErrUpdateRequest is thrown when the update request failed
-	ErrUpdateRequest = errors.New("failed to set new IP address")
 	// ErrInvalidURL is thrown when user does not provide a URL and it does not exist in default urls
 	ErrInvalidURL = errors.New("no url was provided")
 	// ErrInvalidName is thrown when provider name was not provided
 	ErrInvalidName = errors.New("no provider name was provided")
-	// ErrReadBody is thrown when body response can't be parsed
-	ErrReadBody = errors.New("failed to read response body")
 	// ErrNilWatcher is thrown when no watcher config was provided
 	ErrNilWatcher = errors.New("watcher is mandatory")
 	// ErrIpLength is thrown when subdomain no or multiples remote IP address
@@ -33,3 +29,37 @@ var (
 	// ErrNilConfig is thrown when an empty config is provided
 	ErrNilConfig = errors.New("config is mandatory")
 )
+
+// ** CONFIGURATION ** //
+type ClientConfig struct {
+	Logger     Logger    `mapstructure:"logger"`
+	Watchers   []Watcher `mapstructure:"watchers"`
+	UpdateTime int       `mapstructure:"update-time,omitempty"`
+	WebIP      string    `mapstructure:"web-ip,omitempty"`
+}
+
+type Logger struct {
+	Level            string `mapstructure:"level"`
+	DisableTimestamp bool   `mapstructure:"disable-timestamp,omitempty"`
+	DisableColor     bool   `mapstructure:"disable-color,omitempty"`
+}
+
+type Watcher struct {
+	Name   string   `yaml:"name"`
+	URL    string   `yaml:"url,omitempty"`
+	Config []Config `yaml:"config"`
+}
+
+type Config struct {
+	Username   string   `yaml:"username,omitempty"`
+	Password   string   `yaml:"password,omitempty"`
+	Token      string   `yaml:"password,omitempty"`
+	Subdomains []string `yaml:"subdomains"`
+}
+
+var DefaultURLs = map[string]string{
+	"ovh":     "http://www.ovh.com/nic/update?system=dyndns&hostname=SUBDOMAIN&myip=NEWIP",
+	"google":  "https://domains.google.com/nic/update?hostname=SUBDOMAIN&myip=NEWIP",
+	"duckdns": "https://duckdns.org/update/SUBDOMAIN/TOKEN[/NEWIP",
+	"webIP":   "http://dynamicdns.park-your-domain.com/getip",
+}

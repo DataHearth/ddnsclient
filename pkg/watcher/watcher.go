@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/datahearth/ddnsclient/pkg/provider"
@@ -10,6 +12,8 @@ import (
 
 type Watcher interface {
 	Run(*time.Ticker, chan struct{}, chan error)
+	runDDNSCheck() error
+	retrieveServerIP() (string, error)
 }
 
 type watcher struct {
@@ -20,7 +24,7 @@ type watcher struct {
 	providerName string
 }
 
-// NewWatcher creates a watcher a given provider config
+// NewWatcher creates a new instance of the `Watcher` interface
 func NewWatcher(logger logrus.FieldLogger, w *utils.Watcher, webIP string) (Watcher, error) {
 	if logger == nil {
 		return nil, utils.ErrNilLogger
@@ -51,6 +55,7 @@ func NewWatcher(logger logrus.FieldLogger, w *utils.Watcher, webIP string) (Watc
 	}, nil
 }
 
+// Run will trigger a subdomain update every X seconds (defined in config `update-time`)
 func (w *watcher) Run(t *time.Ticker, chClose chan struct{}, chErr chan error) {
 	logger := w.logger.WithField("component", "Run")
 
@@ -81,7 +86,7 @@ func (w *watcher) runDDNSCheck() error {
 	logger.Infof("Starting [%s] DDNS check...\n", w.providerName)
 
 	logger.Debugln("Checking server IP...")
-	srvIP, err := utils.RetrieveServerIP(w.webIP)
+	srvIP, err := w.retrieveServerIP()
 	if err != nil {
 		return err
 	}
@@ -94,4 +99,21 @@ func (w *watcher) runDDNSCheck() error {
 
 	logger.Infof("[%s] DDNS check finished\n", w.providerName)
 	return nil
+}
+
+func (w *watcher) retrieveServerIP() (string, error) {
+	resp, err := http.Get(w.webIP)
+	if err != nil {
+		return "", utils.ErrGetServerIP
+	}
+	if resp.StatusCode != 200 {
+		return "", utils.ErrWrongStatusCode
+	}
+
+	d, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", utils.ErrParseHTTPBody
+	}
+
+	return string(d), nil
 }
