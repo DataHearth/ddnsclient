@@ -10,11 +10,11 @@ You have 2 options to run the DDNS client.
 You can run it as: 
 - docker container:  
 ```
-docker run -v /path/to/config/ddnsclient.yaml:/ddnsclient.yaml --name ddnsclient datahearth/ddnsclient:latest
+docker run -v /path/to/config/ddnsclient.yaml:/ddnsclient.yaml --name ddnsclient ghcr.io/datahearth/ddnsclient:latest
 ```
 or with a custom config path:  
 ```
-docker run -e CONFIG_PATH=/path/inside/container/custom.yaml -v /path/to/config/ddnsclient.yaml:/path/inside/container/custom.yaml --name ddnsclient datahearth/ddnsclient:latest
+docker run -e CONFIG_PATH=/path/inside/container/custom.yaml -v /path/to/config/ddnsclient.yaml:/path/inside/container/custom.yaml --name ddnsclient ghcr.io/datahearth/ddnsclient:latest
 ```
 
 - binary executable:
