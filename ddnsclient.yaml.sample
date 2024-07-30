@@ -1,12 +1,22 @@
 logger:
   level: info # panic, fatal, error, warn, info, debug, trace
   disable-timestamp: false
-  output-color: false
+  disable-color: true
 
 provider:
   ovh:
-    region: ovh-eu
+    # replace YOUR_DOMAIN_NAME with the desired domain name
+    # ! WARNING: DO NOT REPLACE `SUBDOMAIN` and `NEWIP`
+    url: http://www.ovh.com/nic/update?system=dyndns&hostname=SUBDOMAIN&myip=NEWIP
+    username: SOME_USERNAME
+    password: SOME_PASSWORD
+
+watcher:
+  domain: some.com
+  subdomains:
+    - example # just put the host. Ignore the base domain
 
 update-time: 300 # in seconds
 
 web-ip: http://dynamicdns.park-your-domain.com/getip # default http://dynamicdns.park-your-domain.com/getip
+
