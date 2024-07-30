@@ -1,6 +1,7 @@
+bin
+.gitignore
 ddnsclient.yaml
 ddnsclient.yaml.sample
-bin
-Makefile
+LICENSE
 README.md
-.gitignore
+Makefile
