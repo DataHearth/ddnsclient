@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"io/ioutil"
+	"net/http"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -49,4 +52,33 @@ func SetupLogger(logger *logrus.Logger) {
 		FullTimestamp:    true,
 		DisableTimestamp: timestamp,
 	})
+}
+
+func AggregateSubdomains(subdomains []string, domain string) []string {
+	agdSub := make([]string, len(subdomains))
+	for _, sd := range subdomains {
+		agdSub = append(agdSub, sd+"."+domain)
+	}
+
+	return agdSub
+}
+
+// RetrieveServerIP will use the defined web-ip service to get the server public address and save it to the struct
+func RetrieveServerIP(webIP) (string, error) {
+	// * retrieve client's server IP
+	resp, err := http.Get(webIP)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", ErrWrongStatusCode
+	}
+
+	// * get ip from body
+	d, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(d), nil
 }
