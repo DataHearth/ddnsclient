@@ -1,0 +1,5 @@
+module github.com/datahearth/ddns-client
+
+go 1.15
+
+require github.com/sirupsen/logrus v1.8.1
