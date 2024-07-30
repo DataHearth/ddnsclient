@@ -18,8 +18,8 @@ type ovh struct {
 // NewOVH returns a new instance of the OVH provider
 func NewOVH(logger logrus.FieldLogger) (providers.Provider, error) {
 	var ovhConfig utils.ProviderConfig
-	if c, ok := viper.GetStringMap("provider")["ovh"].(utils.ProviderConfig); ok {
-		ovhConfig = c
+	if c, ok := viper.GetStringMap("providers")["ovh"]; ok {
+		ovhConfig = c.(map[string]interface{})
 	} else {
 		return nil, utils.ErrNilOvhConfig
 	}
@@ -52,6 +52,10 @@ func (ovh *ovh) UpdateIP(subdomain, ip string) error {
 	req.SetBasicAuth(ovh.ovhConfig["username"].(string), ovh.ovhConfig["password"].(string))
 
 	// * perform GET request
+	logger.WithFields(logrus.Fields{
+		"subdomain": subdomain,
+		"new-ip": ip,
+	}).Debugln("calling OVH DynHost to update subdomain IP")
 	c := new(http.Client)
 	resp, err := c.Do(req)
 	if err != nil {
@@ -62,6 +66,7 @@ func (ovh *ovh) UpdateIP(subdomain, ip string) error {
 		logger.WithField("status-code", resp.StatusCode).Errorln(utils.ErrWrongStatusCode.Error())
 		return utils.ErrWrongStatusCode
 	}
+
 
 	return nil
 }

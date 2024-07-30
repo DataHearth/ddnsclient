@@ -40,7 +40,8 @@ func Start(logger logrus.FieldLogger) error {
 	defer close(sigc)
 
 	log.Infoln("Start watching periodically for changes!")
-	go w.Run(time.NewTicker(viper.GetDuration("update-time")*time.Second), chClose, chErr)
+	t := time.NewTicker(viper.GetDuration("update-time")*time.Second)
+	go w.Run(t, chClose, chErr)
 
 	for {
 		select {
