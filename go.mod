@@ -1,4 +1,4 @@
-module github.com/datahearth/ddns-client
+module github.com/datahearth/ddnsclient
 
 go 1.15
 
