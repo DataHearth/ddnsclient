@@ -1,7 +1,7 @@
 # DDNSClient
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://gitea.antoine-langlois.net/DataHearth/ddnsclient/src/branch/main/LICENSE)
-![Docker](https://img.shields.io/docker/v/datahearth/ddnsclient)
+[![Docker](https://img.shields.io/docker/v/datahearth/ddnsclient)](https://hub.docker.com/r/datahearth/ddnsclient)
 [![Build Status](https://drone.antoine-langlois.net/api/badges/DataHearth/ddnsclient/status.svg)](https://drone.antoine-langlois.net/DataHearth/ddnsclient)
 
 ## How to install DDNS-CLIENT as dependency
