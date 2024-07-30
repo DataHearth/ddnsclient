@@ -3,12 +3,12 @@ logger:
   disable-timestamp: true
   disable-color: false
 
-# If you want to add your DDNS provider, make sure to put the URL with the correct placeholders (e.g below)
-# And they're using a standard HTTP response (body with good/nochg for OK and error, ... for errors)
-# Also for now, only `basic auth` is supported.
+# Authentication: 
+Choose one of your authentication configuration according to your DNS provider system
+- username + password
+- token
 
-# Predefined URLs (URL is optional in this case): `OVH`, `GOOGLE`
-# Tested with: `OVH`, `GOOGLE`
+# Predefined URLs (URL is optional in this case): `ovh`, `google`, `duckdns`
 
 watchers:
   - name: ovh
@@ -36,9 +36,15 @@ watchers:
         password: some_password
         subdomains:
           - another.subdomain.com
+  - name: duckdns
+    # * url: https://www.duckdns.org/update?domains=SUBDOMAIN&token=TOKEN&ip=NEWIP
+    url: https://duckdns.org/update/SUBDOMAIN/TOKEN/NEWIP
+    config: 
+      - token: some_token
+        subdomains:
+          - some.subdomain.com
 
 update-time: 100 # in seconds
-pending-dns-propagation: 120 # in seconds
 
 web-ip: http://dynamicdns.park-your-domain.com/getip # default http://dynamicdns.park-your-domain.com/getip
 
