@@ -138,15 +138,7 @@ func (p *provider) retrieveSubdomainIP(addr string) (string, error) {
 		return "", fmt.Errorf("%v: %v", utils.ErrIpLenght, ips)
 	}
 
-	ip := ips[0].String()
-	if strings.Contains(ip, ":") {
-		ip, _, err = net.SplitHostPort(ip)
-		if err != nil {
-			return "", fmt.Errorf("%v: %v", utils.ErrSplitAddr, ip)
-		}
-	}
-
-	return ip, nil
+	return ips[0].String(), nil
 }
 
 func (p *provider) checkResponse(body []byte, tokenBased bool, ip string) error {

@@ -120,7 +120,7 @@ func (w *watcher) retrieveServerIP() (string, error) {
 	}
 
 	var ip string
-	if rsp.Header.Get("content-type") == "application/json" {
+	if strings.Contains(rsp.Header.Get("content-type"), "application/json") {
 		body := make(map[string]interface{})
 		if err := json.Unmarshal(b, &body); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON body: %v", err)
