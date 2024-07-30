@@ -16,7 +16,7 @@ steps:
         from_secret: GITEA_USERNAME
       password:
         from_secret: GITEA_TOKEN
-      repo: DataHearth/ddnsclient
+      repo: datahearth/ddnsclient
       auto_tag: true
     when:
       event:
