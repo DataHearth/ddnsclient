@@ -1,22 +1,31 @@
 logger:
   level: info # panic, fatal, error, warn, info, debug, trace
-  disable-timestamp: false
-  disable-color: true
+  disable-timestamp: false # default false
+  disable-color: true # default false
 
-provider:
-  ovh:
-    # replace YOUR_DOMAIN_NAME with the desired domain name
-    # ! WARNING: DO NOT REPLACE `SUBDOMAIN` and `NEWIP`
-    url: http://www.ovh.com/nic/update?system=dyndns&hostname=SUBDOMAIN&myip=NEWIP
-    username: SOME_USERNAME
-    password: SOME_PASSWORD
+providers:
+  # ! WARNING: DO NOT REPLACE `SUBDOMAIN` and `NEWIP`
+  # Uncomment your DDNS provider
+  # ovh:
+  #   url: http://www.ovh.com/nic/update?system=dyndns&hostname=SUBDOMAIN&myip=NEWIP
+  #   username: SOME_USERNAME
+  #   password: SOME_PASSWORD
+  # google:
+  #   url: https://username:password@domains.google.com/nic/update?hostname=SUBDOMAIN&myip=NEWIP
+  # OR
+    # url: https://domains.google.com/nic/update?hostname=SUBDOMAIN&myip=NEWIP
+    # username: SOME_USERNAME
+    # password: SOME_PASSWORD
 
-watcher:
-  domain: some.com
-  subdomains:
-    - example # just put the host. Ignore the base domain
+watchers:
+  # google:
+  # Currently, only one subdomain is supported...
+  #   - sub.domain-google.com
+  # ovh:
+  #   - sub.domain-ovh.com
 
-update-time: 300 # in seconds
+update-time: 300 # in seconds, default 180
+pending-dns-propagation: 120 # in seconds, default 180
 
 web-ip: http://dynamicdns.park-your-domain.com/getip # default http://dynamicdns.park-your-domain.com/getip
 
