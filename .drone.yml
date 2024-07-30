@@ -18,6 +18,8 @@ steps:
         from_secret: GITEA_TOKEN
       repo: datahearth/ddnsclient
       auto_tag: true
+      tags:
+        - latest
     when:
       event:
         - tag
@@ -33,6 +35,8 @@ steps:
         from_secret: DOCKER_TOKEN
       repo: datahearth/ddnsclient
       auto_tag: true
+      tags:
+        - latest
     when:
       event:
         - tag
